@@ -284,6 +284,10 @@ class DataSets:
 
 
 def create_datasets(augment_fn):
+    SEED_CAFE = 0
+    SIZE_CAFE = 400 #LABELLED SIZE
+    VALID_CAFE = 200 #VALIDATION SIZE
+
     d = {}
     d.update([DataSets.creator('cifar10', seed, label, valid, augment_fn)
               for seed, label, valid in itertools.product(range(6), [10 * x for x in SAMPLES_PER_CLASS], [1, 5000])])
@@ -298,6 +302,7 @@ def create_datasets(augment_fn):
               for seed, label, valid in itertools.product(range(6), [10 * x for x in SAMPLES_PER_CLASS], [1, 5000])])
     d.update([DataSets.creator('svhn_noextra', seed, label, valid, augment_fn)
               for seed, label, valid in itertools.product(range(6), [10 * x for x in SAMPLES_PER_CLASS], [1, 5000])])
+    d.update([DataSets.creator('cafe', SEED_CAFE, SIZE_CAFE, VALID_CAFE, augment_fn,height=224, width=224, colors=3, nclass=4)])
     return d
 
 

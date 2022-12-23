@@ -32,6 +32,7 @@ from tqdm import trange
 
 from libml import data as libml_data
 from libml.utils import EasyDict
+from skimage.io import imread
 
 URLS = {
     'svhn': 'http://ufldl.stanford.edu/housenumbers/{}_32x32.mat',
@@ -40,7 +41,7 @@ URLS = {
     'stl10': 'http://ai.stanford.edu/~acoates/stl10/stl10_binary.tar.gz',
 }
 
-
+CAFE_PATH = "ML_DATA/CAFE_5emotions_augmented_format"
 def _encode_png(images):
     raw = []
     with tf.Session() as sess, tf.device('cpu:0'):
@@ -108,7 +109,7 @@ def _load_stl10():
 def _load_cifar10():
     def unflatten(images):
         return np.transpose(images.reshape((images.shape[0], 3, 32, 32)),
-                            [0, 2, 3, 1])
+                            [0, 2, 3, 1]) # n,32,32,3
 
     with tempfile.NamedTemporaryFile() as f:
         request.urlretrieve(URLS['cifar10'], f.name)
@@ -129,6 +130,38 @@ def _load_cifar10():
     test_set['images'] = _encode_png(unflatten(test_set['images']))
     return dict(train=train_set, test=test_set)
 
+def _load_cafe():
+    train_data_batches, train_data_labels = [], []
+    
+    for fold in range(1, 3):
+        folder_name = f"fold{fold}_images"
+        folder_path = os.path.join(CAFE_PATH, folder_name)
+        # get the list of all fold images and append to train data batches
+        train_data_batches.append([imread(os.path.join(folder_path,im)) for im in os.listdir(folder_path)])
+
+        # get the labels
+        label_path = os.path.join(CAFE_PATH,f"part_{fold}_label_array_emotion.npy")
+        train_data_labels.append(np.load(label_path))
+    train_set = {'images': np.concatenate(train_data_batches, axis=0),
+                'labels': np.concatenate(train_data_labels, axis=0)}
+    #print(train_set["images"].shape)
+    #print(train_set["labels"].shape)
+    # 3rd fold is the testing fold
+    test_path = os.path.join(CAFE_PATH, f"fold{3}_images")
+    test_label_path = os.path.join(CAFE_PATH,f"part_{3}_label_array_emotion.npy")
+    # get the test images
+    test_set_images = [imread(os.path.join(test_path,im)) for im in os.listdir(test_path)]
+    # get the test labels
+    test_data_labels = np.load(test_label_path)
+    test_set = {'images': np.array(test_set_images),
+                'labels': test_data_labels}
+    #print(test_set["images"].shape)
+    #print(test_set["labels"].shape)
+    # return dict of train and test sets.
+    train_set['images'] = _encode_png(train_set['images'])
+    test_set['images'] = _encode_png(test_set['images'])
+    return dict(train=train_set, test=test_set)
+    
 
 def _load_cifar100():
     def unflatten(images):
@@ -179,6 +212,7 @@ def _load_fashionmnist():
 
 
 def _int64_feature(value):
+    print([value])
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
@@ -221,18 +255,20 @@ def _is_installed_folder(name, folder):
 
 
 CONFIGS = dict(
-    cifar10=dict(loader=_load_cifar10, checksums=dict(train=None, test=None)),
-    cifar100=dict(loader=_load_cifar100, checksums=dict(train=None, test=None)),
-    svhn=dict(loader=_load_svhn, checksums=dict(train=None, test=None, extra=None)),
-    stl10=dict(loader=_load_stl10, checksums=dict(train=None, test=None)),
+    cafe=dict(loader=_load_cafe, checksums=dict(train=None, test=None)),
+    
 )
 
-
+# cifar10=dict(loader=_load_cifar10, checksums=dict(train=None, test=None)),
+# cifar100=dict(loader=_load_cifar100, checksums=dict(train=None, test=None)),
+# svhn=dict(loader=_load_svhn, checksums=dict(train=None, test=None, extra=None)),
+# stl10=dict(loader=_load_stl10, checksums=dict(train=None, test=None)),
 def main(argv):
     if len(argv[1:]):
         subset = set(argv[1:])
     else:
         subset = set(CONFIGS.keys())
+    print(subset)
     tf.gfile.MakeDirs(libml_data.DATA_DIR)
     for name, config in CONFIGS.items():
         if name not in subset:
@@ -240,10 +276,12 @@ def main(argv):
         if 'is_installed' in config:
             if config['is_installed']():
                 print('Skipping already installed:', name)
-                continue
+                #continue
+                pass
         elif _is_installed(name, config['checksums']):
             print('Skipping already installed:', name)
-            continue
+            #continue
+            pass
         print('Preparing', name)
         datas = config['loader']()
         saver = config.get('saver', _save_as_tfrecord)

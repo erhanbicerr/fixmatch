@@ -352,6 +352,8 @@ DEFAULT_AUGMENT = EasyDict(
                      numpy=AugmentPool),
     svhn_noextra=AugmentPair(tf=lambda x: dict(image=Primitives.s(4)(x), label=x['label'], index=x.get('index', -1)),
                              numpy=AugmentPool),
+    cafe=AugmentPair(tf=lambda x: dict(image=Primitives.s(4)(x), label=x['label'], index=x.get('index', -1)),
+                             numpy=AugmentPool),
 )
 AUTO_AUGMENT = EasyDict({
     k: AugmentPair(tf=v.tf, numpy=functools.partial(AugmentPoolAA, policy_group=k))
