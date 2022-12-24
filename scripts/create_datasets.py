@@ -133,7 +133,7 @@ def _load_cifar10():
 def _load_cafe():
     train_data_batches, train_data_labels = [], []
     
-    for fold in range(1, 2):
+    for fold in range(1, 3):
         folder_name = f"fold{fold}_images"
         folder_path = os.path.join(CAFE_PATH, folder_name)
         # get the list of all fold images and append to train data batches
