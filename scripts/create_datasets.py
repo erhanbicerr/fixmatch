@@ -33,7 +33,7 @@ from tqdm import trange
 from libml import data as libml_data
 from libml.utils import EasyDict
 from skimage.io import imread
-
+from skimage.transform import resize
 URLS = {
     'svhn': 'http://ufldl.stanford.edu/housenumbers/{}_32x32.mat',
     'cifar10': 'https://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz',
@@ -133,13 +133,14 @@ def _load_cifar10():
 def _load_cafe():
     train_data_batches, train_data_labels = [], []
     
-    for fold in range(1, 3):
+    for fold in range(1, 2):
         folder_name = f"fold{fold}_images"
         folder_path = os.path.join(CAFE_PATH, folder_name)
         # get the list of all fold images and append to train data batches
-        train_data_batches.append([imread(os.path.join(folder_path,im)) for im in os.listdir(folder_path)])
-
+        #train_data_batches.append([imread(os.path.join(folder_path,im)) for im in os.listdir(folder_path)])
+        train_data_batches.append([resize(imread(os.path.join(folder_path,im)), (32,32),anti_aliasing=True) for im in os.listdir(folder_path)])
         # get the labels
+        print(np.array(train_data_batches[0]).shape)
         label_path = os.path.join(CAFE_PATH,f"part_{fold}_label_array_emotion.npy")
         train_data_labels.append(np.load(label_path))
     train_set = {'images': np.concatenate(train_data_batches, axis=0),
@@ -150,7 +151,7 @@ def _load_cafe():
     test_path = os.path.join(CAFE_PATH, f"fold{3}_images")
     test_label_path = os.path.join(CAFE_PATH,f"part_{3}_label_array_emotion.npy")
     # get the test images
-    test_set_images = [imread(os.path.join(test_path,im)) for im in os.listdir(test_path)]
+    test_set_images = [resize(imread(os.path.join(test_path,im)), (32,32),anti_aliasing=True) for im in os.listdir(test_path)]
     # get the test labels
     test_data_labels = np.load(test_label_path)
     test_set = {'images': np.array(test_set_images),
@@ -212,7 +213,6 @@ def _load_fashionmnist():
 
 
 def _int64_feature(value):
-    print([value])
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
