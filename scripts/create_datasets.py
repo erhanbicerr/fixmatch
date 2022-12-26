@@ -256,6 +256,7 @@ def _is_installed_folder(name, folder):
 
 CONFIGS = dict(
     cafe=dict(loader=_load_cafe, checksums=dict(train=None, test=None)),
+    cifar10=dict(loader=_load_cifar10, checksums=dict(train=None, test=None)),
     
 )
 
