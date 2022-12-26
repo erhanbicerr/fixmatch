@@ -285,12 +285,12 @@ class DataSets:
 
 def create_datasets(augment_fn):
     SEED_CAFE = 0
-    SEED_CAFE_alt = 1
+    SEED_CAFE_alt = 3
     SIZE_CAFE = 400 #LABELLED SIZE
     VALID_CAFE = 200 #VALIDATION SIZE
 
     SIZE_ALT = 200
-    VALID_ALT = 50
+    VALID_ALT = 100
 
     SIZE_ALT2 = 100
     VALID_ALT2 = 10
@@ -312,11 +312,11 @@ def create_datasets(augment_fn):
               for seed, label, valid in itertools.product(range(6), [10 * x for x in SAMPLES_PER_CLASS], [1, 5000])])
     d.update([DataSets.creator('svhn_noextra', seed, label, valid, augment_fn)
               for seed, label, valid in itertools.product(range(6), [10 * x for x in SAMPLES_PER_CLASS], [1, 5000])])
-    d.update([DataSets.creator('cafe', SEED_CAFE, SIZE_CAFE, VALID_CAFE, augment_fn,height=32, width=32, colors=3, nclass=4)])
-    d.update([DataSets.creator('cafe', SEED_CAFE, SIZE_ALT, VALID_ALT, augment_fn,height=32, width=32, colors=3, nclass=4)])
+    d.update([DataSets.creator('cafe', SEED_CAFE_alt, SIZE_CAFE, VALID_CAFE, augment_fn,height=32, width=32, colors=3, nclass=4)])
+    d.update([DataSets.creator('cafe', SEED_CAFE_alt, SIZE_ALT, VALID_ALT, augment_fn,height=32, width=32, colors=3, nclass=4)])
     d.update([DataSets.creator('cafe', SEED_CAFE_alt, SIZE_ALT2, VALID_ALT2, augment_fn,height=32, width=32, colors=3, nclass=4)])
-    d.update([DataSets.creator('cafe', SEED_CAFE, SIZE_ALT2, VALID_ALT2, augment_fn,height=32, width=32, colors=3, nclass=4)])
-    d.update([DataSets.creator('cafe', SEED_CAFE, SIZE_ALT3, VALID_ALT3, augment_fn,height=32, width=32, colors=3, nclass=4)])
+    d.update([DataSets.creator('cafe', SEED_CAFE_alt, SIZE_ALT2, VALID_ALT2, augment_fn,height=32, width=32, colors=3, nclass=4)])
+    d.update([DataSets.creator('cafe', SEED_CAFE_alt, SIZE_ALT3, VALID_ALT3, augment_fn,height=32, width=32, colors=3, nclass=4)])
     return d
 
 
