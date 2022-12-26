@@ -34,6 +34,7 @@ from libml import data as libml_data
 from libml.utils import EasyDict
 from skimage.io import imread
 from skimage.transform import resize
+import pandas as pd
 URLS = {
     'svhn': 'http://ufldl.stanford.edu/housenumbers/{}_32x32.mat',
     'cifar10': 'https://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz',
@@ -134,31 +135,34 @@ def _load_cafe():
     train_data_batches, train_data_labels = [], []
     
     for fold in range(1, 3):
-        folder_name = f"fold{fold}_images"
-        folder_path = os.path.join(CAFE_PATH, folder_name)
-        # get the list of all fold images and append to train data batches
-        #train_data_batches.append([imread(os.path.join(folder_path,im)) for im in os.listdir(folder_path)])
-        train_data_batches.append([resize(imread(os.path.join(folder_path,im)), (32,32),anti_aliasing=True) for im in os.listdir(folder_path)])
-        # get the labels
-        print(np.array(train_data_batches[0]).shape)
-        label_path = os.path.join(CAFE_PATH,f"part_{fold}_label_array_emotion.npy")
-        train_data_labels.append(np.load(label_path))
+        im_label_df = pd.read_csv(f"part_{fold}_label_array_emotion.csv")
+        im_name_list = im_label_df["im_path"].values
+        im_label_list = im_label_df["label"].astype(int).values
+        img_path = CAFE_PATH + "/" + f'fold{fold}_images'
+        train_data_batches.append([resize(imread(os.path.join(img_path,im)), (32,32),anti_aliasing=True) for im in im_name_list])
+        train_data_labels.append(im_label_list)
+        print("Label count:",len(im_label_list))
+        print("Image count:",len(im_name_list))
+
+
     train_set = {'images': np.concatenate(train_data_batches, axis=0),
                 'labels': np.concatenate(train_data_labels, axis=0)}
-    #print(train_set["images"].shape)
-    #print(train_set["labels"].shape)
-    # 3rd fold is the testing fold
-    test_path = os.path.join(CAFE_PATH, f"fold{3}_images")
-    test_label_path = os.path.join(CAFE_PATH,f"part_{3}_label_array_emotion.npy")
-    # get the test images
-    test_set_images = [resize(imread(os.path.join(test_path,im)), (32,32),anti_aliasing=True) for im in os.listdir(test_path)]
-    # get the test labels
-    test_data_labels = np.load(test_label_path)
+
+
+                
+    im_label_df = pd.read_csv("part_3_label_array_emotion.csv")
+    im_name_list = im_label_df["im_path"].values
+    im_label_list = im_label_df["label"].astype(int).values
+    print("Label count:",len(im_label_list))
+    print("Image count:",len(im_name_list))
+    img_path=CAFE_PATH + "/" +  'fold3_images'
+    test_set_images = [resize(imread(os.path.join(img_path,im)), (32,32),anti_aliasing=True) for im in im_name_list]
+    test_data_labels=im_label_list
+
+    
     test_set = {'images': np.array(test_set_images),
                 'labels': test_data_labels}
-    #print(test_set["images"].shape)
-    #print(test_set["labels"].shape)
-    # return dict of train and test sets.
+
     train_set['images'] = _encode_png(train_set['images'])
     test_set['images'] = _encode_png(test_set['images'])
     return dict(train=train_set, test=test_set)
@@ -256,7 +260,7 @@ def _is_installed_folder(name, folder):
 
 CONFIGS = dict(
     cafe=dict(loader=_load_cafe, checksums=dict(train=None, test=None)),
-    cifar10=dict(loader=_load_cifar10, checksums=dict(train=None, test=None)),
+    #cifar10=dict(loader=_load_cifar10, checksums=dict(train=None, test=None)),
     
 )
 
